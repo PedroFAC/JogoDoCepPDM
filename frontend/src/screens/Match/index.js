@@ -16,6 +16,7 @@ const Match = ({}) => {
   const [modalCep, setModalCep] = useState("");
   const [life, setLife] = useState(1000);
   const [victory, setVictory] = useState(false);
+  const socket = io("http://192.168.15.3:8888");
 
   const { navigate } = useNavigation();
   async function validateCep() {
@@ -24,12 +25,13 @@ const Match = ({}) => {
       response.status === 200
         ? (setShownCep(modalCep), setShowModal(false))
         : alert("Cep inválido");
-    } catch (cep) {
+    } catch {
       alert("Cep inválido");
     }
   }
   function checkAnswer() {
     const digits = shownCep.slice(0, 3);
+    socket.emit("message", cep);
     setTentativas(tentativas + 1);
     cep < digits ? setStatus("Maior") : setStatus("Menor");
     cep === digits
@@ -59,6 +61,12 @@ const Match = ({}) => {
       }
     }
   }, [victory, life]);
+  useEffect(() => {
+    socket.connect();
+    socket.on("received", (receive) => {
+      alert(receive);
+    });
+  }, []);
   return (
     <View>
       <Modal visible={showModal}>

@@ -4,10 +4,11 @@ const server = require("http").createServer(app);
 const io = require("socket.io").listen(server);
 const port = 8888;
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("a user connected :D");
-  socket.on("entrou", () => {
-    console.log('entrou');
+  socket.on("message", (cep) => {
+    console.log(cep);
+    io.emit("received", cep);
   });
 });
 
