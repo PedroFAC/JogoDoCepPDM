@@ -10,6 +10,20 @@ io.on("connection", (socket) => {
     console.log(cep);
     io.emit("received", cep);
   });
+  socket.on("clientVictory", () => {
+    io.emit("serverDefeat");
+  });
+  socket.on("serverVictory", () => {
+    io.emit("clientDefeat");
+  });
+  socket.on("sendServerCep", (cep) => {
+    console.log(cep);
+    io.emit("receiveServerCep", cep);
+  });
+  socket.on("sendClientCep", (cep) => {
+    console.log(cep);
+    io.emit("receiveClientCep", cep);
+  });
 });
 
 server.listen(port, () => console.log("server running on port:" + port));

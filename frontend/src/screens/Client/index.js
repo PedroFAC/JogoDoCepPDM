@@ -20,7 +20,7 @@ const Client = () => {
         value={port}
         onChangeText={(value) => setPort(value)}
       />
-      <Button onPress={()=>navigate('Match')} title="Entrar" />
+      <Button onPress={()=>navigate('Match',{player: 'client'})} title="Entrar" />
     </View>
   );
 };

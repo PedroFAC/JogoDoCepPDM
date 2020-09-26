@@ -36,7 +36,7 @@ const Server = () => {
           onPress={() => setChecked("Morlock")}
         />
       </View>
-      <Button onPress={() => navigate("Match")} title="Entrar" />
+      <Button onPress={() => navigate("Match",{player: 'server'})} title="Entrar" />
     </View>
   );
 };

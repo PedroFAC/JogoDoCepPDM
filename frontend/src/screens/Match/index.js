@@ -5,7 +5,7 @@ import io from "socket.io-client";
 import viacep from "../../api/viacep";
 import { useNavigation } from "@react-navigation/native";
 
-const Match = ({}) => {
+const Match = ({ route }) => {
   const [cep, setCep] = useState("");
   const [shownCep, setShownCep] = useState("");
   const [logradouro, setLogradouro] = useState("");
@@ -17,13 +17,18 @@ const Match = ({}) => {
   const [life, setLife] = useState(1000);
   const [victory, setVictory] = useState(false);
   const socket = io("http://192.168.15.3:8888");
-
+  const { player } = route.params;
   const { navigate } = useNavigation();
+  function sendCep(cep) {
+    player === "server"
+      ? socket.emit("sendServerCep", cep)
+      : socket.emit("sendClientCep", cep);
+  }
   async function validateCep() {
     try {
       const response = await viacep.get(`${modalCep}/json/`);
       response.status === 200
-        ? (setShownCep(modalCep), setShowModal(false))
+        ? (sendCep(modalCep), setShowModal(false))
         : alert("Cep inválido");
     } catch {
       alert("Cep inválido");
@@ -35,7 +40,7 @@ const Match = ({}) => {
     setTentativas(tentativas + 1);
     cep < digits ? setStatus("Maior") : setStatus("Menor");
     cep === digits
-      ? (alert("Certa resposta"), setVictory(true))
+      ? (alert("Certa resposta"), setVictory(true), socket.emit("victory"))
       : (alert("Resposta errada"), setLife(life - 100));
   }
   useEffect(() => {
@@ -46,12 +51,11 @@ const Match = ({}) => {
       setCidade(response.data.localidade);
       setShownCep(response.data.cep);
     }
-    if (showModal === false) {
-      fetchCep();
-    }
-  }, [shownCep, showModal]);
+    fetchCep();
+  }, [shownCep]);
   useEffect(() => {
     if (victory) {
+      socket.emit("victory");
       alert("vitória");
       navigate("Home");
     } else {
@@ -65,6 +69,28 @@ const Match = ({}) => {
     socket.connect();
     socket.on("received", (receive) => {
       alert(receive);
+    });
+    socket.on("clientVictory", () => {
+      if (player === "server") {
+        alert("derrota");
+      }
+    });
+    socket.on("serverVictory", () => {
+      if (player === "client") {
+        alert("derrota");
+      }
+    });
+    socket.on("receiveServerCep", (serverCep) => {
+      if (player === "client") {
+        alert(serverCep)
+        setShownCep(serverCep);
+      }
+    });
+    socket.on("receiveClientCep", (clientCep) => {
+      if (player === "server") {
+        alert(clientCep)
+        setShownCep(clientCep);
+      }
     });
   }, []);
   return (
