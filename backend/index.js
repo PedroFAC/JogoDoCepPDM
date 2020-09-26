@@ -11,9 +11,11 @@ io.on("connection", (socket) => {
     io.emit("received", cep);
   });
   socket.on("clientVictory", () => {
+    console.log('client victory')
     io.emit("serverDefeat");
   });
   socket.on("serverVictory", () => {
+    console.log('server victory')
     io.emit("clientDefeat");
   });
   socket.on("sendServerCep", (cep) => {

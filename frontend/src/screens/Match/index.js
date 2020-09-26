@@ -40,7 +40,11 @@ const Match = ({ route }) => {
     setTentativas(tentativas + 1);
     cep < digits ? setStatus("Maior") : setStatus("Menor");
     cep === digits
-      ? (alert("Certa resposta"), setVictory(true), socket.emit("victory"))
+      ? (alert("Certa resposta"),
+        setVictory(true),
+        player === "server"
+          ? socket.emit("serverVictory")
+          : socket.emit("clientVictory"))
       : (alert("Resposta errada"), setLife(life - 100));
   }
   useEffect(() => {
@@ -80,15 +84,27 @@ const Match = ({ route }) => {
         alert("derrota");
       }
     });
+    socket.on("clientDefeat", () => {
+      if (player === "client") {
+        alert("derrota");
+        navigate("Home");
+      }
+    });
+    socket.on("serverDefeat", () => {
+      if (player === "server") {
+        alert("derrota");
+        navigate("Home");
+      }
+    });
     socket.on("receiveServerCep", (serverCep) => {
       if (player === "client") {
-        alert(serverCep)
+        alert(serverCep);
         setShownCep(serverCep);
       }
     });
     socket.on("receiveClientCep", (clientCep) => {
       if (player === "server") {
-        alert(clientCep)
+        alert(clientCep);
         setShownCep(clientCep);
       }
     });
