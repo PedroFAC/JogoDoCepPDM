@@ -18,6 +18,14 @@ io.on("connection", (socket) => {
     console.log('server victory')
     io.emit("clientDefeat");
   });
+  socket.on("clientDefeat", () => {
+    console.log('client defeat')
+    io.emit("serverVictory");
+  });
+  socket.on("serverDefeat", () => {
+    console.log('server defeat')
+    io.emit("clientVictory");
+  });
   socket.on("sendServerCep", (cep) => {
     console.log(cep);
     io.emit("receiveServerCep", cep);
@@ -26,6 +34,9 @@ io.on("connection", (socket) => {
     console.log(cep);
     io.emit("receiveClientCep", cep);
   });
+  socket.on("end",()=>{
+    socket.disconnect(0)
+  })
 });
 
 server.listen(port, () => console.log("server running on port:" + port));

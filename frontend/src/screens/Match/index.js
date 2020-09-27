@@ -22,15 +22,15 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     margin: 10,
   },
-  cepInfo:{
-    padding:10
+  cepInfo: {
+    padding: 10,
   },
-  cepText:{
-    fontSize:28
+  cepText: {
+    fontSize: 28,
   },
-  text:{
-    fontSize:18
-  }
+  text: {
+    fontSize: 18,
+  },
 });
 
 const Match = ({ route }) => {
@@ -44,8 +44,9 @@ const Match = ({ route }) => {
   const [modalCep, setModalCep] = useState("");
   const [life, setLife] = useState(1000);
   const [victory, setVictory] = useState(false);
-  const socket = io("http://192.168.15.3:8888");
-  const { player } = route.params;
+  const [lockBack, setLockBack] = useState(true);
+  const { player, ip, port } = route.params;
+  const socket = io(`http://${ip}:${port}`);
   const { navigate, addListener } = useNavigation();
   function sendCep(cep) {
     player === "server"
@@ -87,40 +88,53 @@ const Match = ({ route }) => {
   }, [shownCep]);
   useEffect(() => {
     if (victory) {
-      socket.emit("victory");
+      player === "server"
+        ? socket.emit("serverVictory")
+        : socket.emit("clientVictory");
       alert("vitória");
+      setLockBack(false);
       navigate("Home");
+      socket.emit("end");
     } else {
       if (life === 0) {
-        alert("derrota");
-        navigate("Home");
+        player === "server"
+          ? socket.emit("serverDefeat")
+          : socket.emit("clientDefeat");
+        socket.emit("end");
       }
     }
   }, [victory, life]);
   useEffect(() => {
     socket.connect();
-    socket.on("received", (receive) => {
-      alert(receive);
-    });
     socket.on("clientVictory", () => {
       if (player === "server") {
         alert("derrota");
+        socket.emit("end");
+        setLockBack(false);
+        navigate("Home");
       }
     });
     socket.on("serverVictory", () => {
       if (player === "client") {
         alert("derrota");
+        socket.emit("end");
+        setLockBack(false);
+        navigate("Home");
       }
     });
     socket.on("clientDefeat", () => {
       if (player === "client") {
         alert("derrota");
+        socket.emit("end");
+        setLockBack(false);
         navigate("Home");
       }
     });
     socket.on("serverDefeat", () => {
       if (player === "server") {
         alert("derrota");
+        socket.emit("end");
+        setLockBack(false);
         navigate("Home");
       }
     });
@@ -137,11 +151,14 @@ const Match = ({ route }) => {
       }
     });
   }, []);
-  useEffect(()=>{
-    addListener('beforeRemove', (e)=>{
+  useEffect(() => {
+    addListener("beforeRemove", (e) => {
+      if (lockBack === false) {
+        return;
+      }
       e.preventDefault();
-    })
-  },[])
+    });
+  }, [lockBack]);
   return (
     <View>
       <Modal visible={showModal}>
@@ -164,7 +181,9 @@ const Match = ({ route }) => {
       </Modal>
       <View>
         <View style={styles.cepInfo}>
-          <Text style={styles.cepText}>CEP: {shownCep.replace(/^.{3}/g, "XXX")}</Text>
+          <Text style={styles.cepText}>
+            CEP: {shownCep.replace(/^.{3}/g, "XXX")}
+          </Text>
           <Text style={styles.text}>Logradouro: {logradouro}</Text>
           <Text style={styles.text}>Cidade: {cidade}</Text>
           <Text style={styles.text}>Status: {status}</Text>

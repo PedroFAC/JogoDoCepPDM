@@ -71,7 +71,7 @@ const Server = () => {
       <Button
         style={styles.button}
         mode="contained"
-        onPress={() => navigate("Match", { player: "server" })}
+        onPress={() => navigate("Match", { player: "server", ip, port })}
       >
         Entrar
       </Button>
