@@ -1,9 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, Modal } from "react-native";
-import { TextInput } from "react-native-paper";
+import { View, Modal, StyleSheet } from "react-native";
+import { TextInput, Text, Button } from "react-native-paper";
 import io from "socket.io-client";
 import viacep from "../../api/viacep";
 import { useNavigation } from "@react-navigation/native";
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignContent: "center",
+  },
+  button: {
+    margin: 10,
+    padding: 10,
+    width: "60%",
+    alignSelf: "center",
+  },
+  input: {
+    width: "80%",
+    alignSelf: "center",
+    margin: 10,
+  },
+  cepInfo:{
+    padding:10
+  },
+  cepText:{
+    fontSize:28
+  },
+  text:{
+    fontSize:18
+  }
+});
 
 const Match = ({ route }) => {
   const [cep, setCep] = useState("");
@@ -18,7 +46,7 @@ const Match = ({ route }) => {
   const [victory, setVictory] = useState(false);
   const socket = io("http://192.168.15.3:8888");
   const { player } = route.params;
-  const { navigate } = useNavigation();
+  const { navigate, addListener } = useNavigation();
   function sendCep(cep) {
     player === "server"
       ? socket.emit("sendServerCep", cep)
@@ -109,30 +137,57 @@ const Match = ({ route }) => {
       }
     });
   }, []);
+  useEffect(()=>{
+    addListener('beforeRemove', (e)=>{
+      e.preventDefault();
+    })
+  },[])
   return (
     <View>
       <Modal visible={showModal}>
-        <View>
+        <View style={styles.container}>
           <TextInput
+            label="CEP do oponente"
+            style={styles.input}
+            mode="outlined"
             value={modalCep}
             onChangeText={(value) => setModalCep(value)}
           />
-          <Button title="Confirmar CEP" onPress={() => validateCep()} />
+          <Button
+            style={styles.button}
+            mode="contained"
+            onPress={() => validateCep()}
+          >
+            Confirmar CEP
+          </Button>
         </View>
       </Modal>
       <View>
-        <Text>CEP: {shownCep.replace(/^.{3}/g, "XXX")}</Text>
-        <Text>Logradouro: {logradouro}</Text>
-        <Text>Cidade: {cidade}</Text>
-        <Text>Status: {status}</Text>
-        <Text>Pontuação: {life}</Text>
-        <Text>Tentativas: {tentativas}</Text>
-        <TextInput
-          maxLength={3}
-          value={cep}
-          onChangeText={(value) => setCep(value)}
-        />
-        <Button onPress={() => checkAnswer()} title={"Mandar"} />
+        <View style={styles.cepInfo}>
+          <Text style={styles.cepText}>CEP: {shownCep.replace(/^.{3}/g, "XXX")}</Text>
+          <Text style={styles.text}>Logradouro: {logradouro}</Text>
+          <Text style={styles.text}>Cidade: {cidade}</Text>
+          <Text style={styles.text}>Status: {status}</Text>
+          <Text style={styles.text}>Pontuação: {life}</Text>
+          <Text style={styles.text}>Tentativas: {tentativas}</Text>
+        </View>
+        <View>
+          <TextInput
+            label="Dígitos"
+            style={styles.input}
+            mode="outlined"
+            maxLength={3}
+            value={cep}
+            onChangeText={(value) => setCep(value)}
+          />
+          <Button
+            style={styles.button}
+            mode="contained"
+            onPress={() => checkAnswer()}
+          >
+            Mandar
+          </Button>
+        </View>
       </View>
     </View>
   );

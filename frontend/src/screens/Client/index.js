@@ -1,7 +1,27 @@
 import React, { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { View, StyleSheet } from "react-native";
+import {TextInput, Button} from 'react-native-paper'
 import { useNavigation } from "@react-navigation/native";
 import io from 'socket.io-client'
+
+const styles = StyleSheet.create({
+  container:{
+    flex: 1,
+    justifyContent: "center",
+    alignContent:"center"
+  },
+  button:{
+    margin:10,
+    padding:10,
+    width: "60%",
+    alignSelf:"center"
+  },
+  input:{
+    width: '80%',
+    alignSelf: 'center',
+    margin: 10
+  },
+})
 
 const Client = () => {
   const [ip, setIp] = useState("");
@@ -9,18 +29,24 @@ const Client = () => {
   const { navigate } = useNavigation();
   
   return (
-    <View>
+    <View style={styles.container}>
       <TextInput
-        placeholder="IP"
+        style={styles.input}
+        mode="outlined"
+        label="IP"
         value={ip}
         onChangeText={(value) => setIp(value)}
       />
       <TextInput
-        placeholder="Porta"
+        style={styles.input}
+        mode="outlined"
+        label="Porta"
         value={port}
         onChangeText={(value) => setPort(value)}
       />
-      <Button onPress={()=>navigate('Match',{player: 'client'})} title="Entrar" />
+      <Button style={styles.button} mode="contained" onPress={()=>navigate('Match',{player: 'client'})}>
+        Entrar
+      </Button>
     </View>
   );
 };

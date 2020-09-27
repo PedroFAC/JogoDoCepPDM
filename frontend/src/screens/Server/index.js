@@ -1,42 +1,80 @@
 import React, { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
-import { RadioButton } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import { RadioButton, Button, Text, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignContent: "center",
+  },
+  button: {
+    margin: 10,
+    padding: 10,
+    width: "60%",
+    alignSelf: "center",
+  },
+  input: {
+    width: "80%",
+    alignSelf: "center",
+    margin: 10,
+  },
+  radio: {
+    flexDirection: "row",
+  },
+  radioGroup: {
+    alignSelf: "center",
+  },
+});
 const Server = () => {
   const [ip, setIp] = useState("");
   const [port, setPort] = useState("");
   const [checked, setChecked] = useState("Eloi");
   const { navigate } = useNavigation();
   return (
-    <View>
+    <View style={styles.container}>
       <TextInput
-        placeholder="IP"
+        style={styles.input}
+        mode="outlined"
+        label="IP"
         value={ip}
         onChangeText={(value) => setIp(value)}
       />
       <TextInput
-        placeholder="Porta"
+        style={styles.input}
+        mode="outlined"
+        label="Porta"
         value={port}
         onChangeText={(value) => setPort(value)}
       />
-      <View>
-        <Text>Eloi</Text>
-        <RadioButton
-          value="Eloi"
-          status={checked === "Eloi" ? "checked" : "unchecked"}
-          onPress={() => setChecked("Eloi")}
-        />
+      <View style={styles.radioGroup}>
+        <RadioButton.Group>
+          <View style={styles.radio}>
+            <RadioButton
+              value="Eloi"
+              status={checked === "Eloi" ? "checked" : "unchecked"}
+              onPress={() => setChecked("Eloi")}
+            />
+            <Text>Eloi</Text>
+          </View>
+          <View style={styles.radio}>
+            <RadioButton
+              value="Morlock"
+              status={checked === "Morlock" ? "checked" : "unchecked"}
+              onPress={() => setChecked("Morlock")}
+            />
+            <Text>Morlock</Text>
+          </View>
+        </RadioButton.Group>
       </View>
-      <View>
-        <Text>Morlock</Text>
-        <RadioButton
-          value="Morlock"
-          status={checked === "Morlock" ? "checked" : "unchecked"}
-          onPress={() => setChecked("Morlock")}
-        />
-      </View>
-      <Button onPress={() => navigate("Match",{player: 'server'})} title="Entrar" />
+      <Button
+        style={styles.button}
+        mode="contained"
+        onPress={() => navigate("Match", { player: "server" })}
+      >
+        Entrar
+      </Button>
     </View>
   );
 };
