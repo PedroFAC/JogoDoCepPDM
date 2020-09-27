@@ -45,6 +45,7 @@ const Match = ({ route }) => {
   const [life, setLife] = useState(1000);
   const [victory, setVictory] = useState(false);
   const [lockBack, setLockBack] = useState(true);
+  const [storedCep, setStoredCep] = useState("");
   const { player, ip, port } = route.params;
   const socket = io(`http://${ip}:${port}`);
   const { navigate, addListener } = useNavigation();
@@ -57,15 +58,15 @@ const Match = ({ route }) => {
     try {
       const response = await viacep.get(`${modalCep}/json/`);
       response.status === 200
-        ? (sendCep(modalCep), setShowModal(false))
+        ? (sendCep(modalCep), setShowModal(false), setStoredCep(modalCep))
         : alert("Cep inválido");
     } catch {
       alert("Cep inválido");
     }
   }
   function checkAnswer() {
+    sendCep(storedCep);
     const digits = shownCep.slice(0, 3);
-    socket.emit("message", cep);
     setTentativas(tentativas + 1);
     cep < digits ? setStatus("Maior") : setStatus("Menor");
     cep === digits
@@ -128,6 +129,10 @@ const Match = ({ route }) => {
         socket.emit("end");
         setLockBack(false);
         navigate("Home");
+      }else{
+        alert("vitória")
+        socket.emit('end')
+        navigate("Home");
       }
     });
     socket.on("serverDefeat", () => {
@@ -135,6 +140,10 @@ const Match = ({ route }) => {
         alert("derrota");
         socket.emit("end");
         setLockBack(false);
+        navigate("Home");
+      }else{
+        alert("vitória")
+        socket.emit('end')
         navigate("Home");
       }
     });
@@ -152,13 +161,10 @@ const Match = ({ route }) => {
     });
   }, []);
   useEffect(() => {
-    addListener("beforeRemove", (e) => {
-      if (lockBack === false) {
-        return;
-      }
-      e.preventDefault();
+    addListener("blur", () => {
+      socket.emit('end')
     });
-  }, [lockBack]);
+  }, []);
   return (
     <View>
       <Modal visible={showModal}>
@@ -205,6 +211,13 @@ const Match = ({ route }) => {
             onPress={() => checkAnswer()}
           >
             Mandar
+          </Button>
+          <Button
+            style={styles.button}
+            mode="contained"
+            onPress={() => sendCep(storedCep)}
+          >
+            Sincronizar
           </Button>
         </View>
       </View>
