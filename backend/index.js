@@ -3,9 +3,17 @@ const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io").listen(server);
 const port = 8888;
-
+let host = false;
 io.on("connection", (socket) => {
   console.log("a user connected :D");
+  socket.on("serverConnect", () => {
+    host = true;
+  });
+  socket.on("clientConnect", () => {
+    if (host) {
+      io.emit("openRoom");
+    }
+  });
   socket.on("message", (cep) => {
     console.log(cep);
     io.emit("received", cep);
@@ -19,11 +27,11 @@ io.on("connection", (socket) => {
     io.emit("clientDefeat");
   });
   socket.on("clientDefeat", () => {
-    console.log("client defeat");
+    console.log("client victory");
     io.emit("serverVictory");
   });
   socket.on("serverDefeat", () => {
-    console.log("server defeat");
+    console.log("server victory");
     io.emit("clientVictory");
   });
   socket.on("sendServerCep", (cep) => {
@@ -34,8 +42,12 @@ io.on("connection", (socket) => {
     console.log(cep);
     io.emit("receiveClientCep", cep);
   });
+  socket.on("sendRace", (race) => {
+    io.emit("receiveRace", race);
+  });
   socket.on("end", () => {
     socket.disconnect(0);
+    host = false;
   });
 });
 

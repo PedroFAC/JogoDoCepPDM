@@ -4,36 +4,12 @@ import { TextInput, Text, Button } from "react-native-paper";
 import io from "socket.io-client";
 import viacep from "../../api/viacep";
 import { useNavigation } from "@react-navigation/native";
+import styles from './styles'
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignContent: "center",
-  },
-  button: {
-    margin: 10,
-    padding: 10,
-    width: "60%",
-    alignSelf: "center",
-  },
-  input: {
-    width: "80%",
-    alignSelf: "center",
-    margin: 10,
-  },
-  cepInfo: {
-    padding: 10,
-  },
-  cepText: {
-    fontSize: 28,
-  },
-  text: {
-    fontSize: 18,
-  },
-});
+
 
 const Match = ({ route }) => {
+  const { player, ip, port, checked } = route.params;
   const [cep, setCep] = useState("");
   const [shownCep, setShownCep] = useState("");
   const [logradouro, setLogradouro] = useState("");
@@ -45,8 +21,8 @@ const Match = ({ route }) => {
   const [life, setLife] = useState(1000);
   const [victory, setVictory] = useState(false);
   const [lockBack, setLockBack] = useState(true);
-  const [storedCep, setStoredCep] = useState("");
-  const { player, ip, port } = route.params;
+  const [race, setRace] =
+    player === "server" ? useState(checked) : useState("");
   const socket = io(`http://${ip}:${port}`);
   const { navigate, addListener } = useNavigation();
   function sendCep(cep) {
@@ -58,14 +34,13 @@ const Match = ({ route }) => {
     try {
       const response = await viacep.get(`${modalCep}/json/`);
       response.status === 200
-        ? (sendCep(modalCep), setShowModal(false), setStoredCep(modalCep))
+        ? (sendCep(modalCep), setShowModal(false))
         : alert("Cep inválido");
     } catch {
       alert("Cep inválido");
     }
   }
   function checkAnswer() {
-    sendCep(storedCep);
     const digits = shownCep.slice(0, 3);
     setTentativas(tentativas + 1);
     cep < digits ? setStatus("Maior") : setStatus("Menor");
@@ -75,94 +50,81 @@ const Match = ({ route }) => {
         player === "server"
           ? socket.emit("serverVictory")
           : socket.emit("clientVictory"))
-      : (alert("Resposta errada"), setLife(life - 100));
+      : (alert("Resposta errada"), setLife(life - 50));
   }
-  useEffect(() => {
-    async function fetchCep() {
-      const response = await viacep.get(`${shownCep}/json/`);
-      console.log(response.data);
-      setLogradouro(response.data.logradouro);
-      setCidade(response.data.localidade);
-      setShownCep(response.data.cep);
-    }
-    fetchCep();
-  }, [shownCep]);
+  
+  async function getCep(cep) {
+    const response = await viacep.get(`${cep}/json/`);
+    console.log(response.data);
+    setLogradouro(response.data.logradouro);
+    setCidade(response.data.localidade);
+    setShownCep(response.data.cep);
+  }
   useEffect(() => {
     if (victory) {
       player === "server"
         ? socket.emit("serverVictory")
         : socket.emit("clientVictory");
-      alert("vitória");
+      alert("Vitória!");
       setLockBack(false);
       navigate("Home");
-      socket.emit("end");
     } else {
       if (life === 0) {
         player === "server"
-          ? socket.emit("serverDefeat")
-          : socket.emit("clientDefeat");
-        socket.emit("end");
+          ? socket.emit("clientVictory")
+          : socket.emit("serverVictory");
+        alert("Derrota!");
+        setLockBack(false);
+        navigate("Home");
       }
     }
   }, [victory, life]);
   useEffect(() => {
     socket.connect();
-    socket.on("clientVictory", () => {
-      if (player === "server") {
-        alert("derrota");
-        socket.emit("end");
-        setLockBack(false);
-        navigate("Home");
-      }
-    });
-    socket.on("serverVictory", () => {
-      if (player === "client") {
-        alert("derrota");
-        socket.emit("end");
-        setLockBack(false);
-        navigate("Home");
-      }
-    });
+    if (player === "server") {
+      socket.emit("sendRace", race);
+    }
     socket.on("clientDefeat", () => {
-      if (player === "client") {
-        alert("derrota");
-        socket.emit("end");
+      if (player === "server") {
+        alert("Vitória!");
         setLockBack(false);
         navigate("Home");
-      }else{
-        alert("vitória")
-        socket.emit('end')
+      } else {
+        alert("Derrota!");
+        setLockBack(false);
         navigate("Home");
       }
     });
     socket.on("serverDefeat", () => {
-      if (player === "server") {
-        alert("derrota");
-        socket.emit("end");
+      if (player === "client") {
+        alert("Vitória!");
         setLockBack(false);
         navigate("Home");
-      }else{
-        alert("vitória")
-        socket.emit('end')
+      } else {
+        alert("Derrota!");
+        setLockBack(false);
         navigate("Home");
       }
     });
     socket.on("receiveServerCep", (serverCep) => {
       if (player === "client") {
-        alert(serverCep);
-        setShownCep(serverCep);
+        getCep(serverCep);
       }
     });
     socket.on("receiveClientCep", (clientCep) => {
       if (player === "server") {
-        alert(clientCep);
-        setShownCep(clientCep);
+        getCep(clientCep);
+      }
+    });
+    socket.on("receiveRace", (race) => {
+      if (player === "client") {
+        race === "Morlock" ? setRace("Eloi") : setRace("Morlock");
       }
     });
   }, []);
   useEffect(() => {
     addListener("blur", () => {
-      socket.emit('end')
+      socket.emit("end");
     });
   }, []);
   return (
@@ -193,7 +155,7 @@ const Match = ({ route }) => {
           <Text style={styles.text}>Logradouro: {logradouro}</Text>
           <Text style={styles.text}>Cidade: {cidade}</Text>
           <Text style={styles.text}>Status: {status}</Text>
-          <Text style={styles.text}>Pontuação: {life}</Text>
+          <Text style={styles.text}>Pontos de vida: {life}</Text>
           <Text style={styles.text}>Tentativas: {tentativas}</Text>
         </View>
         <View>
@@ -212,13 +174,7 @@ const Match = ({ route }) => {
           >
             Mandar
           </Button>
-          <Button
-            style={styles.button}
-            mode="contained"
-            onPress={() => sendCep(storedCep)}
-          >
-            Sincronizar
-          </Button>
+          <Text style={styles.race}>Jogando como {race}</Text>
         </View>
       </View>
     </View>

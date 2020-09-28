@@ -1,27 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import io from "socket.io-client";
+import styles from './styles'
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignContent: "center",
-  },
-  button: {
-    margin: 10,
-    padding: 10,
-    width: "60%",
-    alignSelf: "center",
-  },
-  input: {
-    width: "80%",
-    alignSelf: "center",
-    margin: 10,
-  },
-});
 
 const Client = () => {
   const [ip, setIp] = useState("");
@@ -29,10 +12,10 @@ const Client = () => {
   const { navigate } = useNavigation();
 
   function connectToSocket() {
-    console.log(ip);
     const socket = io(`http://${ip}:${port}`);
     socket.connect();
-    socket.on("connect", () => {
+    socket.emit("clientConnect");
+    socket.on("openRoom", () => {
       navigate("Match", { player: "client", ip, port });
     });
   }

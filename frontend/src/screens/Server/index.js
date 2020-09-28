@@ -2,39 +2,30 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { RadioButton, Button, Text, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
+import io from "socket.io-client";
+import styles from './styles'
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignContent: "center",
-  },
-  button: {
-    margin: 10,
-    padding: 10,
-    width: "60%",
-    alignSelf: "center",
-  },
-  input: {
-    width: "80%",
-    alignSelf: "center",
-    margin: 10,
-  },
-  radio: {
-    flexDirection: "row",
-  },
-  radioGroup: {
-    alignSelf: "center",
-  },
-});
+
 const Server = () => {
   const [ip, setIp] = useState("");
   const [port, setPort] = useState("");
   const [checked, setChecked] = useState("Eloi");
+  const [waiting, setWaiting] = useState(false);
   const { navigate } = useNavigation();
+  function connectToSocket() {
+    const socket = io(`http://${ip}:${port}`);
+    socket.connect();
+    socket.emit("serverConnect");
+    setWaiting(true);
+    alert("Por favor espere seu oponente se juntar a sala");
+    socket.on("openRoom", () => {
+      navigate("Match", { player: "server", ip, port,checked });
+    });
+  }
   return (
     <View style={styles.container}>
       <TextInput
+        disabled={waiting}
         style={styles.input}
         mode="outlined"
         label="IP"
@@ -42,6 +33,7 @@ const Server = () => {
         onChangeText={(value) => setIp(value)}
       />
       <TextInput
+        disabled={waiting}
         style={styles.input}
         mode="outlined"
         label="Porta"
@@ -51,7 +43,8 @@ const Server = () => {
       <View style={styles.radioGroup}>
         <RadioButton.Group>
           <View style={styles.radio}>
-            <RadioButton
+            <RadioButton 
+              disabled={waiting}
               value="Eloi"
               status={checked === "Eloi" ? "checked" : "unchecked"}
               onPress={() => setChecked("Eloi")}
@@ -60,6 +53,7 @@ const Server = () => {
           </View>
           <View style={styles.radio}>
             <RadioButton
+              disabled={waiting}
               value="Morlock"
               status={checked === "Morlock" ? "checked" : "unchecked"}
               onPress={() => setChecked("Morlock")}
@@ -69,9 +63,10 @@ const Server = () => {
         </RadioButton.Group>
       </View>
       <Button
+        disabled={waiting}
         style={styles.button}
         mode="contained"
-        onPress={() => navigate("Match", { player: "server", ip, port })}
+        onPress={() => connectToSocket()}
       >
         Entrar
       </Button>
