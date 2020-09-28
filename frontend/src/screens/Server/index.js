@@ -3,8 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { RadioButton, Button, Text, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import io from "socket.io-client";
-import styles from './styles'
-
+import styles from "./styles";
 
 const Server = () => {
   const [ip, setIp] = useState("");
@@ -16,10 +15,12 @@ const Server = () => {
     const socket = io(`http://${ip}:${port}`);
     socket.connect();
     socket.emit("serverConnect");
-    setWaiting(true);
-    alert("Por favor espere seu oponente se juntar a sala");
+    socket.on("waitingClient", () => {
+      setWaiting(true);
+      alert("Por favor espere seu oponente se juntar a sala");
+    });
     socket.on("openRoom", () => {
-      navigate("Match", { player: "server", ip, port,checked });
+      navigate("Match", { player: "server", ip, port, checked });
     });
   }
   return (
@@ -43,7 +44,7 @@ const Server = () => {
       <View style={styles.radioGroup}>
         <RadioButton.Group>
           <View style={styles.radio}>
-            <RadioButton 
+            <RadioButton
               disabled={waiting}
               value="Eloi"
               status={checked === "Eloi" ? "checked" : "unchecked"}

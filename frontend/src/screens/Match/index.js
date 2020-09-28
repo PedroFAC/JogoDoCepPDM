@@ -4,9 +4,7 @@ import { TextInput, Text, Button } from "react-native-paper";
 import io from "socket.io-client";
 import viacep from "../../api/viacep";
 import { useNavigation } from "@react-navigation/native";
-import styles from './styles'
-
-
+import styles from "./styles";
 
 const Match = ({ route }) => {
   const { player, ip, port, checked } = route.params;
@@ -24,7 +22,7 @@ const Match = ({ route }) => {
   const [race, setRace] =
     player === "server" ? useState(checked) : useState("");
   const socket = io(`http://${ip}:${port}`);
-  const { navigate, addListener } = useNavigation();
+  const { navigate, addListener, dispatch } = useNavigation();
   function sendCep(cep) {
     player === "server"
       ? socket.emit("sendServerCep", cep)
@@ -52,7 +50,7 @@ const Match = ({ route }) => {
           : socket.emit("clientVictory"))
       : (alert("Resposta errada"), setLife(life - 50));
   }
-  
+
   async function getCep(cep) {
     const response = await viacep.get(`${cep}/json/`);
     console.log(response.data);
@@ -127,6 +125,7 @@ const Match = ({ route }) => {
       socket.emit("end");
     });
   }, []);
+  
   return (
     <View>
       <Modal visible={showModal}>

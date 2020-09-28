@@ -8,10 +8,13 @@ io.on("connection", (socket) => {
   console.log("a user connected :D");
   socket.on("serverConnect", () => {
     host = true;
+    io.emit("waitingClient");
   });
   socket.on("clientConnect", () => {
     if (host) {
       io.emit("openRoom");
+    }else{
+      io.emit("notCreated")
     }
   });
   socket.on("message", (cep) => {

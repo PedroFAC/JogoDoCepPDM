@@ -3,8 +3,7 @@ import { View } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import io from "socket.io-client";
-import styles from './styles'
-
+import styles from "./styles";
 
 const Client = () => {
   const [ip, setIp] = useState("");
@@ -15,6 +14,9 @@ const Client = () => {
     const socket = io(`http://${ip}:${port}`);
     socket.connect();
     socket.emit("clientConnect");
+    socket.on("notCreated", () => {
+      alert("Sala ainda não criada");
+    });
     socket.on("openRoom", () => {
       navigate("Match", { player: "client", ip, port });
     });
