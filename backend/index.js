@@ -5,7 +5,6 @@ const io = require("socket.io").listen(server);
 const port = 8888;
 let host = false;
 io.on("connection", (socket) => {
-  console.log("a user connected :D");
   socket.on("serverConnect", () => {
     host = true;
     io.emit("waitingClient");
