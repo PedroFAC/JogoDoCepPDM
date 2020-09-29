@@ -9,4 +9,6 @@ Criada em React Native(Expo).
  - Então entre na pasta frontend e rode os comandos:
   `npm install`
    `npm run`
+ 
+ 
  [Vídeo do App rodando](https://youtu.be/ON_jxB27_b0)
